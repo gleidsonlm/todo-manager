@@ -1,13 +1,14 @@
 # About #
 My submission for "Challenge #1 - TodoManager", from the @RocketSeatEducation Ignite Node.js learning path.
 In this challenge:
-- [] Create users with "username" and "name";
-- [] CRUD "todo"s items for each user;
-    - Create a new "todo";
-    - List all "todo"s;
-    - Change an existent "todo"s "title" and "deadline";
-    - Mark a "todo" as completed;
-    - Exclude a "todo". 
+- [X] Create users with "username" and "name";
+- [X] CRUD "todo"s items for each user;
+    - [x] Create a new "todo";
+    - [x] List all "todo"s;
+    - [x] Change an existent "todo"s "title" and "deadline";
+    - [x] Mark a "todo" as completed;
+    - [x] Exclude a "todo". 
 
 ## Technical requisites; ##
-- [] "username" shall be a header parameter.
+- [X] User with "username" in header parameter shall exist;
+- [X] Cannot update or delete inexistent items.
