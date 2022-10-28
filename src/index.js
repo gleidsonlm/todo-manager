@@ -53,16 +53,15 @@ app.post('/users', (request, response) => {
   if (users.some(user => user.username === username)) {
     response.status(400).json({ error: 'Username already exists' });
   } else {
-    // If not, adds an user object into the 'users' array
-    users.push({
+    // Else, build user object
+    const newUser = {
       id: uuidv4(),
       name,
       username,
       todos: []
-    });
-
-    // Checking on the new baby object 
-    newUser = users.find(user => user.username === username)
+    };
+    //Adds an user object into the 'users' array
+    users.push(newUser)
 
     // Returns HTTP 201 respose with user created.
     return response.status(201).json(newUser);
@@ -77,11 +76,11 @@ app.get('/todos', checksExistsUserAccount, (request, response) => {
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
-  // Receives a "title"(string) and "deadline"(date) in the request body
-  const { title, deadline } = request.body;
-
   // checksExistsUserAccount returns matching user
   const { user } = request;
+
+  // Receives a "title"(string) and "deadline"(date) in the request body
+  const { title, deadline } = request.body;
 
   // Build new todo object
   const newTodo = {
@@ -89,7 +88,7 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
     title: title, //string
     done: false, // !important, always starts false
     deadline: new Date(deadline),  // in header, date format input is 'YYYY-MM-DD'
-    // created_at: new Date() // 
+    created_at: new Date() // 
   }
   
   // Push object to user's todos array 
@@ -111,20 +110,22 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   // Receives "id" in the route parameters
   const { id } = request.params;
   
-  // If todo/id doesn't exists? To create or reject request? Choosing the second.
-  if (!user.todos.find(e => e.id === id)) {
+  // Find the todo object in the array
+  const todo = user.todos.find(e => e.id === id);
+  
+  // If not found, bad request status 400
+  if (!todo) {
+     //If todo/id doesn't exists? To create or reject request? Choosing the second.
     return response.status(404).json({ error: 'Todo not found.' });
   
   // Else, update todo with matching id
   } else {
-    // Matching object map
-    oldTodo = user.todos.find(e => e.id === id);
     // Reassign object value. Not functional, but works.
-    oldTodo.title = title;
-    oldTodo.deadline = deadline;
+    todo.title = title;
+    todo.deadline = deadline;
     
     // Return the updated todo with response status code 201
-    return response.status(200).json(user.todos);
+    return response.status(200).json(todo);
   }
 });
 
@@ -135,18 +136,20 @@ app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
   // Receives "id" in the route parameters
   const { id } = request.params;
   
-  // If task "id" doesn't exists, then return response status code 404.
-  if (!user.todos.find(e => e.id === id)) {
+  // Find the todo object in the array
+  const todo = user.todos.find(e => e.id === id);
+  
+  // If not found, response code status 404
+  if (!todo) {
     return response.status(404).json({ error: 'Todo not found.' });
-  }
-
+  
   // Else,
-  else {
+  } else {
     // assign "true" as value for "done" propriety.
-    (user.todos.find(e => e.id === id)).done = true;
+    todo.done = true;
 
     // return response status code updated/patched.
-    return response.status(200).json(user.todos);
+    return response.status(200).json(todo);
   }
 });
 
@@ -156,14 +159,18 @@ app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
   
   // Receives "id" in the route parameters
   const { id } = request.params;
+
+  // Find the todo object in the array, must be Index to Splice latter.
+  const todoIndex = user.todos.findIndex(e => e.id === id);
   
-  // If task "id" doesn't exists, then return response status code 404.
-  if (!user.todos.find(e => e.id === id)) {
+  // If not found, bad request status 400. Must be 0 or higher position.
+  if (todoIndex === -1 ) {
     return response.status(404).json({ error: 'Todo not found.' });
+
   // Else,
   } else {
     // Deletes only the object matching id
-    user.todos.splice(user.todos.findIndex(e => e.id === id), 1);
+    user.todos.splice(todoIndex, 1);
     // Returns response status code 204 without response body.
     return response.status(204).end();
   }
