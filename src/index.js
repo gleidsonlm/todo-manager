@@ -46,7 +46,6 @@ function checksTodoExists(request, response, next) {
   const user = users.find(e => e.username === username);
   // todo ("how ironic"): don't put user and todo in request when todo id is not uuid
   // uuid.validate(str) - https://www.npmjs.com/package/uuid
-  const todo = user.todos.find(e => e.id === id)
   
   /* todo: Probably better done with switch, refactor later. */
 
@@ -54,15 +53,22 @@ function checksTodoExists(request, response, next) {
   if (!user){
     return response.status(404).json({ error: 'User not found' });
   
-  // don't put user and todo in request when todo does not exists
-  } else if (!todo){
-    return response.status(404).json({ error: "Todo not found" });
   
-  // put user and todo in request when both exits
+  } else if (validate(id)) {
+    const todo = user.todos.find(e => e.id === id) 
+    
+    // don't put user and todo in request when todo does not exists  
+    if (!todo){
+      return response.status(404).json({ error: "Todo not found" });
+    
+    // put user and todo in request when both exits
+    } else {
+    request.user = user
+    request.todo = todo
+    return next();
+    }
   } else {
-  request.user = user
-  request.todo = todo
-  return next();
+    return response.status(400).json({ error: "Todo ID is not UUID"})
   }
 }
 
