@@ -28,8 +28,9 @@ users.push({
 
 function checksExistsUserAccount(request, response, next) {
   // find user by username in header and pass it to request.user
-  const user = request.headers;
-  if (users.some(e => e.username === username)){
+  const { username } = request.headers;
+  const user = users.find(user => user.username === username);
+  if (user){
     request.user = user;
     return next();
   } else {
@@ -39,7 +40,7 @@ function checksExistsUserAccount(request, response, next) {
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // let user create a new todo when is in free plan and have less than ten todos
+  // Let user create a new todo when is in free plan and have less than ten todos
   if (!request.user.pro) {
     if (request.user.todos.length < 10) {
       return next();
@@ -48,7 +49,7 @@ function checksCreateTodosUserAvailability(request, response, next) {
         return response.status(403).json({ error: "You have "+ request.user.todos.length + "todo's created. /n You could delete other completed or go Pro and support us." })
       }
   } else if (request.user.pro) {
-  //let user create infinite new todos when is in Pro plan
+  // Let user create infinite new todos when is in Pro plan
   return next();
   } else {
     return response.status(500).json({ error: "We're unable to check your subscripion, please contact our client service team." })
@@ -57,47 +58,48 @@ function checksCreateTodosUserAvailability(request, response, next) {
 
 function checksTodoExists(request, response, next) {
   // put user and todo in request when both exits
-  const user = request.headers;
-  const todo = request.params;
+  const { username } = request.headers;
+  const { todoId } = request.params;
+  const user = users.find(e => e.username === username);
+  const todo = user.todos.find(e = e.id === todoId);
+  
   
   /* todo: Probably better done with switch, refactor later. */
-  // put userin request when user does exists
-  if (users.find(e => e.username === username)){
-    request.user = user;
-    
-    // todo id is uuid
-    if (validate(todo)){ //imported from uuid library.
-      
-      // put user and todo in request when both exits
-      if (user.todo.find(e => e.id === todo.id)) {
-        todo = request.todo
-        return next();
-
-      // don't put user and todo in request when todo does not exists
-      } else {
-        return response.status(404).json({ error: "Todo not found" });
-      } 
-
-    // don't put user and todo in request when todo is not uuid
-    } else {
-      return response.status(400).json({ error: 'Todo is not UUID' });
-    }
-
-  } else {
-  // don't put user and todo in request when user does not exists
+  // don't put user and todo in request when user does not exists  
+  if (!user){
     return response.status(404).json({ error: 'User not found' });
+
+  // don't put user and todo in request when todo id is not uuid
+  // uuid.validate(str) - https://www.npmjs.com/package/uuid
+  } else if (!validate(todoId)){
+    return response.status(400).json({ error: 'Todo ID is not UUID' });
+  
+  // don't put user and todo in request when todo does not exists
+  } else if (!todo){
+    return response.status(404).json({ error: "Todo not found" });
+  
+  } else {
+  // put user and todo in request when both exits
+  user = request.user
+  todo = request.todo
+  return next();
   }
+
 }
 
+
 function findUserById(request, response, next) {
-  // find user by id route param and pass it to request.user
-  const id = request.params;
-  if (users.find(e => e.id === id)){
-    request.user = e;
-    return next();
-  } else {
-    //dont' pass user to request.user when it does not exists
+  // Find user by id route param -
+  const { id } = request.params;
+  const user = users.find(e => e.id === id);
+  
+  if (!user) {
+    // Dont' pass user to request.user when it does not exists
     return response.status(404).json({ error: 'User not found' });
+  } else {
+    // - and pass it to request.user
+    request.user = user;
+    return next();
   }
 }
 
