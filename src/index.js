@@ -9,23 +9,6 @@ app.use(cors());
 
 const users = [];
 
-/* 
-  User for testing purposes.
-users.push({
-  id: uuidv4(),
-  name: "Gleidson",
-  username: "gleidsonlm",
-  pro: false,
-  todos: []
-},{
-  id: uuidv4(),
-  name: "Gleidson",
-  username: "gmedeiros",
-  pro: true,
-  todos: []
-});
-*/
-
 function checksExistsUserAccount(request, response, next) {
   // find user by username in header and pass it to request.user
   const { username } = request.headers;
@@ -61,29 +44,25 @@ function checksTodoExists(request, response, next) {
   const { username } = request.headers;
   const { id } = request.params;
   const user = users.find(e => e.username === username);
-
-  /* todo: Probably better done with switch, refactor later. */
-  // don't put user and todo in request when todo id is not uuid
+  // todo ("how ironic"): don't put user and todo in request when todo id is not uuid
   // uuid.validate(str) - https://www.npmjs.com/package/uuid
-  if(validate(id)) {
-      const todo = user.todos.find(e => e.id === id);
+  const todo = user.todos.find(e => e.id === id)
   
-    // don't put user and todo in request when user does not exists  
-    if (!user){
-      return response.status(404).json({ error: 'User not found' });
-    
-    // don't put user and todo in request when todo does not exists
-    } else if (!todo){
-      return response.status(404).json({ error: "Todo not found" });
-    
-    // put user and todo in request when both exits
-    } else {
-    const user = request.user
-    const todo = request.todo
-    return next();
-    }
+  /* todo: Probably better done with switch, refactor later. */
+
+  // don't put user and todo in request when user does not exists  
+  if (!user){
+    return response.status(404).json({ error: 'User not found' });
+  
+  // don't put user and todo in request when todo does not exists
+  } else if (!todo){
+    return response.status(404).json({ error: "Todo not found" });
+  
+  // put user and todo in request when both exits
   } else {
-  return response.status(400).json({ error: 'Todo ID is not UUID' });
+  request.user = user
+  request.todo = todo
+  return next();
   }
 }
 
