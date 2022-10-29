@@ -11,7 +11,6 @@ const users = [];
 
 /* 
   User for testing purposes.
-*/
 users.push({
   id: uuidv4(),
   name: "Gleidson",
@@ -25,6 +24,7 @@ users.push({
   pro: true,
   todos: []
 });
+*/
 
 function checksExistsUserAccount(request, response, next) {
   // find user by username in header and pass it to request.user
@@ -61,11 +61,11 @@ function checksTodoExists(request, response, next) {
   const todo = request.params;
   
   /* todo: Probably better done with switch, refactor later. */
-  // don't put user and todo in request when user does not exists
+  // put userin request when user does exists
   if (users.find(e => e.username === username)){
     request.user = user;
     
-    // don't put user and todo in request when todo id is not uuid
+    // todo id is uuid
     if (validate(todo)){ //imported from uuid library.
       
       // put user and todo in request when both exits
@@ -80,17 +80,25 @@ function checksTodoExists(request, response, next) {
 
     // don't put user and todo in request when todo is not uuid
     } else {
-      return response.status(404).json({ error: 'Todo is not UUID' });
+      return response.status(400).json({ error: 'Todo is not UUID' });
     }
 
   } else {
-  // find a non existing user by username in header
+  // don't put user and todo in request when user does not exists
     return response.status(404).json({ error: 'User not found' });
   }
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  // find user by id route param and pass it to request.user
+  const id = request.params;
+  if (users.find(e => e.id === id)){
+    request.user = e;
+    return next();
+  } else {
+    //dont' pass user to request.user when it does not exists
+    return response.status(404).json({ error: 'User not found' });
+  }
 }
 
 app.post('/users', (request, response) => {
