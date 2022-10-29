@@ -59,34 +59,33 @@ function checksCreateTodosUserAvailability(request, response, next) {
 function checksTodoExists(request, response, next) {
   // put user and todo in request when both exits
   const { username } = request.headers;
-  const { todoId } = request.params;
+  const { id } = request.params;
   const user = users.find(e => e.username === username);
-  const todo = user.todos.find(e => e.id === todoId);
-  
-  
-  /* todo: Probably better done with switch, refactor later. */
-  // don't put user and todo in request when user does not exists  
-  if (!user){
-    return response.status(404).json({ error: 'User not found' });
 
+  /* todo: Probably better done with switch, refactor later. */
   // don't put user and todo in request when todo id is not uuid
   // uuid.validate(str) - https://www.npmjs.com/package/uuid
-  } else if (!validate(todoId)){
-    return response.status(400).json({ error: 'Todo ID is not UUID' });
+  if(validate(id)) {
+      const todo = user.todos.find(e => e.id === id);
   
-  // don't put user and todo in request when todo does not exists
-  } else if (!todo){
-    return response.status(404).json({ error: "Todo not found" });
-  
+    // don't put user and todo in request when user does not exists  
+    if (!user){
+      return response.status(404).json({ error: 'User not found' });
+    
+    // don't put user and todo in request when todo does not exists
+    } else if (!todo){
+      return response.status(404).json({ error: "Todo not found" });
+    
+    // put user and todo in request when both exits
+    } else {
+    const user = request.user
+    const todo = request.todo
+    return next();
+    }
   } else {
-  // put user and todo in request when both exits
-  user = request.user
-  todo = request.todo
-  return next();
+  return response.status(400).json({ error: 'Todo ID is not UUID' });
   }
-
 }
-
 
 function findUserById(request, response, next) {
   // Find user by id route param -
