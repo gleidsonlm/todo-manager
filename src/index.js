@@ -61,7 +61,7 @@ function checksTodoExists(request, response, next) {
   const { username } = request.headers;
   const { todoId } = request.params;
   const user = users.find(e => e.username === username);
-  const todo = user.todos.find(e = e.id === todoId);
+  const todo = user.todos.find(e => e.id === todoId);
   
   
   /* todo: Probably better done with switch, refactor later. */
